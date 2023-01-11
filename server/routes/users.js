@@ -3,43 +3,34 @@ var router = express.Router();
 let User = require('../models/User');
 
 // GET all users
-router.get("/",  async(req, res) => {
-	const users = await User.find({}, (err) => {
-    if (!err) {
-        res.send(users);
-    }
-    console.log(err);
-    res.send("Some error occured!")
+router.get("/",  (req, res) => {
+	User.find({}).then((users) => {
+    res.send(users);
+    
 }).catch(err => console.log("Error occured, " + err));
 });
 
 // POST one user
-router.post("/signup", async (req, res) => {
+router.post("/signup", (req, res) => {
   // check if username already exists
   const newUser = new User({...req.body});
-  const insertedUser = await newUser.save();
-  return res.status(201).json(insertedUser);
+  newUser.save().then((insertedUser) =>
+  res.status(201).json(insertedUser));
 });
 
   
-router.get("/login",  async(req, res) => {
-	const user = await User.findOne({username: req.body.username}, (err) => {
-    if (!err) {
-      if(user != null){
-        if(user.password === req.body.password) {
-          res.send(user); // Will use this info to display some user info 
-        }
-        else{
-          res.send("Invalid username or password");
-        }
-      }
-      else{
-        res.send("Invalid username or password");
-      }
+router.get("/login",  (req, res) => {
+	User.findOne({username: req.body.username}).then((user) => 
+  {
+    if(user.password == req.body.password) {
+      res.send(user); // Will use this info to display some user info 
     }
-    console.log(err);
-    res.send("Some error occured!")
-}).catch(err => console.log("Error occured, " + err));
+    else{
+      res.status(404).json({
+        status: "Invalid username or password"
+      });
+    }
+  }).catch(err => console.log("Error occured, " + err));
 });
 
 module.exports = router;
